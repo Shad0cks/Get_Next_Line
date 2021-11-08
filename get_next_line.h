@@ -4,9 +4,7 @@
 #include <unistd.h>
 #include <stdlib.h>
 
-//// debug 
 #include <fcntl.h>
-#include <stdio.h>
 
 # ifndef BUFFER_SIZE
 #  define BUFFER_SIZE 20

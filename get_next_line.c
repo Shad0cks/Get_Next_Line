@@ -42,7 +42,7 @@ char    *get_line(char **buffer_line, char **ligne)
     else
     {
         *ligne = ft_strdup(temp);
-        buffer_line = NULL;
+        *buffer_line = NULL;
     }
     free(temp);
     return (*ligne);
@@ -64,7 +64,7 @@ int read_file(int fd, char **buffer, char **buffer_line, char **ligne)
         free(temp);
     }
     free(*buffer);
-    *ligne = get_line(buffer_line, ligne);
+    get_line(buffer_line, ligne);
     return (ret);
 }
 
@@ -79,8 +79,16 @@ char *get_next_line(int fd)
     buffer = (char *) malloc((BUFFER_SIZE + 1));
     if (buffer == NULL)
         return NULL;
-    
+    if (read(fd, buffer, 0) < 0)
+	{
+		free(buffer);
+		return (NULL);
+	}
     buffer_line == NULL ? buffer_line =  ft_strdup("") : NULL;
-    read_file(fd, &buffer, &buffer_line, &line);
+    if (read_file(fd, &buffer, &buffer_line, &line) == 0 && *line == '\0')
+	{
+		free(line);
+		return (NULL);
+	}
     return (line);
 }
