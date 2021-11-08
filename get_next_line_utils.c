@@ -59,3 +59,29 @@ char	*ft_strjoin(char const *s1, char const *s2)
 	ft_memcpy(result + ft_strlen((char *)s1), s2, ft_strlen((char *)s2));
 	return (result);
 }
+
+char	*ft_substr(char const *s, unsigned int start, size_t len)
+{
+	char	*result;
+	size_t	index;
+	size_t	index_result;
+
+	if (!s)
+		return (NULL);
+	index_result = 0;
+	index = 0;
+	result = malloc(ft_min(len, ft_strlen(s)) + 1);
+	if (result == NULL)
+		return (NULL);
+	while (s[index] != '\0')
+	{
+		if (index >= start && index_result < len)
+		{
+			result[index_result] = s[index];
+			index_result++;
+		}
+		index++;
+	}
+	result[index_result] = '\0';
+	return (result);
+}

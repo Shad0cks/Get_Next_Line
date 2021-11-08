@@ -1,92 +1,86 @@
 #include "get_next_line.h"
 
-char    *ft_strdup(char *src, char* end)
+char	*ft_strdup(char *src)
 {
 	char	*cped;
 	int	i;
 
-	i = 0;
-    (void)end;
 	cped = malloc(sizeof(char) * (ft_strlen(src) + 1));
 	if (cped == NULL)
 		return (NULL);
-	while (src != end)
+	i = 0;
+	while (src[i] != '\0')
 	{
-		cped[i] = *src;
+		cped[i] = src[i];
 		i++;
-        src++;
 	}
 	cped[i] = '\0';
 	return (cped);
 }
 
-char *get_global_buffer(int fd)
+size_t	ft_min(size_t a, size_t b)
 {
-    char buffer[BUFFER_SIZE];
-    char *global_buffer;
+	if (a > b)
+		return (b);
+	return (a);
+}
+
+char    *get_line(char **buffer_line, char **ligne)
+{
+    int index;
+    char *temp;
+
+    temp = *buffer_line;
+    index = 0;
+    while ((*buffer_line)[index] != '\n' && (*buffer_line)[index] != '\0')
+        index++;
+    if (ft_strchr(*buffer_line, '\n'))
+    {
+        *ligne = ft_substr(*buffer_line, 0, index + 1);
+        *buffer_line = ft_strdup(*buffer_line + index + 1);
+    }
+    else
+    {
+        *ligne = ft_strdup(temp);
+        buffer_line = NULL;
+    }
+    free(temp);
+    return (*ligne);
+}
+
+int read_file(int fd, char **buffer, char **buffer_line, char **ligne)
+{
+    char *temp;
     int ret;
 
-    global_buffer = NULL;
-    ret = read(fd, buffer, BUFFER_SIZE);
-    while(ret != 0)
+    ret = 1;
+    
+    while(ret > 0 && !ft_strchr(*buffer_line, '\n'))
     {
-        if (!global_buffer)
-             global_buffer = ft_strjoin("", buffer);
-        else
-            global_buffer = ft_strjoin(global_buffer, buffer);
-        ret = read(fd, buffer, BUFFER_SIZE);
+        ret = read(fd, *buffer, BUFFER_SIZE);
+        (*buffer)[ret] = '\0';
+        temp = *buffer_line;
+        *buffer_line = ft_strjoin(*buffer_line, *buffer);
+        free(temp);
     }
-    buffer[ret] = '\0';
-    return (global_buffer);
+    free(*buffer);
+    *ligne = get_line(buffer_line, ligne);
+    return (ret);
 }
 
 char *get_next_line(int fd)
 {
-    static char *global_buffer;
-    static int line;
-    char *line_buffer;
-    char    *start;
-    int size_line;
+    char    *buffer;
+    static char *buffer_line = NULL;
+    char        *line;
+
+    if (fd < 0 || BUFFER_SIZE <= 0)
+        return (NULL);
+    buffer = (char *) malloc((BUFFER_SIZE + 1));
+    if (buffer == NULL)
+        return NULL;
     
-    size_line = 0;
-    if (!line || !global_buffer)
-    {
-        line = 0;
-        global_buffer =  get_global_buffer(fd);
-    }
-    start = global_buffer;
-    if  (ft_strchr(global_buffer, '\n') != NULL)
-    {
-        line_buffer = ft_strdup(start, ft_strchr(global_buffer, '\n') + 1);
-        global_buffer = ft_strchr(global_buffer, '\n') + 1;
-    }
-    else
-    {
-        line_buffer = ft_strdup(start, ft_strchr(global_buffer, '\0'));
-        free(global_buffer);
-    }
-    line++;
-    return (line_buffer);
+    buffer_line == NULL ? buffer_line =  ft_strdup("") : NULL;
+    read_file(fd, &buffer, &buffer_line, &line);
+    return (line);
 }
-
-/*
-int main(void)
-{
-    int fd = open("/Users/pierre-louis/Documents/C/Project_GNL/GNL/test.txt", O_RDONLY);
-
-    if (fd == -1)
-    {
-        printf("ERROR FILE NOT FOUND \n");
-        return (-1);
-    }
-    printf("%s\n", get_next_line(fd));
-    printf("%s\n", get_next_line(fd));
-    printf("%s\n", get_next_line(fd));
-    printf("%s\n", get_next_line(fd));
-    printf("%s\n", get_next_line(fd));
-    printf("%s\n", get_next_line(fd));
-
-    close(fd);
-    return (0);
-}
-*/
